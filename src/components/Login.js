@@ -1,11 +1,31 @@
 // SignInPage.jsx
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
+import { checkValidData } from "../utils/validate";
 
 const Login = () => {
   const [isSignIn, setIsSignIn] = useState(true);
+
+  //useRef Hook - to refer the element in DOM and access its value
+  const name = useRef(null);
+  const email = useRef(null);
+  const password = useRef(null);
+  const [errors, setErrors] = useState({});
+
   const toggleSignInForm = () => {
     setIsSignIn(!isSignIn);
   };
+
+  const handleButtonClick = (e) => {
+    e.preventDefault();
+    const validationErrors = checkValidData({email: email.current.value, password: password.current.value});
+    setErrors(validationErrors);
+console.log("Errors", validationErrors);
+    if (Object.keys(validationErrors).length === 0) {
+      console.log('Form submitted:', {email: email.current.value, password: password.current.value});
+      // Proceed with login
+    }
+  }
+
   return (
     <div className="relative min-h-screen w-full">
       {/* Background Image */}
@@ -26,30 +46,39 @@ const Login = () => {
             {isSignIn ? "Sign In" : "Sign Up"}
           </h1>
 
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
             {
-                !isSignIn ? <input
-              type="text"
-              placeholder="Full Name"
-              className="w-full px-4 py-3 bg-gray-800 rounded text-white focus:outline-none focus:ring-2 focus:ring-red-600"
-            /> : null
+                !isSignIn ? 
+                <div><input
+                ref={name}
+                type="text"
+                placeholder="Full Name"
+                className="w-full px-4 py-3 bg-gray-800 rounded text-white focus:outline-none focus:ring-2 focus:ring-red-600"
+                /> 
+                {errors.name && <p style={{ color: 'red' }}>{errors.name}</p>} </div>
+                 : null
             }
+            {}
             
             <input
+            ref={email}
               type="email"
               placeholder="Email or phone number"
               className="w-full px-4 py-3 bg-gray-800 rounded text-white focus:outline-none focus:ring-2 focus:ring-red-600"
             />
+            {errors.email && <p style={{ color: 'red' }}>{errors.email}</p>}
 
             <input
+            ref={password}
               type="password"
               placeholder="Password"
               className="w-full px-4 py-3 bg-gray-800 rounded text-white focus:outline-none focus:ring-2 focus:ring-red-600"
             />
+            {errors.password && <p style={{ color: 'red' }}>{errors.password}</p>}
 
             <button
               type="submit"
-              className="w-full bg-red-600 hover:bg-red-700 py-3 rounded font-semibold"
+              className="w-full bg-red-600 hover:bg-red-700 py-3 rounded font-semibold" onClick={handleButtonClick}
             >
               {isSignIn ? "Sign In" : "Sign Up"}
             </button>
