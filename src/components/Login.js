@@ -1,6 +1,8 @@
 // SignInPage.jsx
 import React, { useRef, useState } from "react";
 import { checkValidData } from "../utils/validate";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../utils/firebase";
 
 const Login = () => {
   const [isSignIn, setIsSignIn] = useState(true);
@@ -16,15 +18,46 @@ const Login = () => {
   };
 
   const handleButtonClick = (e) => {
-    e.preventDefault();
-    const validationErrors = checkValidData({email: email.current.value, password: password.current.value});
-    setErrors(validationErrors);
-console.log("Errors", validationErrors);
-    if (Object.keys(validationErrors).length === 0) {
-      console.log('Form submitted:', {email: email.current.value, password: password.current.value});
-      // Proceed with login
+    let validationErrors = {};
+    if (isSignIn) {
+      validationErrors = checkValidData({
+        email: email.current.value,
+        password: password.current.value,
+      });
+    } else {
+      validationErrors = checkValidData({
+        name: name.current.value,
+        email: email.current.value,
+        password: password.current.value,
+      });
     }
-  }
+
+    setErrors(validationErrors);
+    console.log("Errors", validationErrors);
+    if (Object.keys(validationErrors).length === 0) {
+      console.log("Form submitted:", {
+        email: email.current.value,
+        password: password.current.value,
+      });
+
+      // Proceed with login
+      if (!isSignIn) {
+        createUserWithEmailAndPassword(auth, email.current.value, password.current.value)
+          .then((userCredential) => {
+            // Signed up
+            const user = userCredential.user;
+            console.log("****", user);
+          })
+          .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+           console.log("****", errorCode + " " + errorMessage);
+          });
+      } else {
+
+      }
+    }
+  };
 
   return (
     <div className="relative min-h-screen w-full">
@@ -47,38 +80,41 @@ console.log("Errors", validationErrors);
           </h1>
 
           <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-            {
-                !isSignIn ? 
-                <div><input
-                ref={name}
-                type="text"
-                placeholder="Full Name"
-                className="w-full px-4 py-3 bg-gray-800 rounded text-white focus:outline-none focus:ring-2 focus:ring-red-600"
-                /> 
-                {errors.name && <p style={{ color: 'red' }}>{errors.name}</p>} </div>
-                 : null
-            }
+            {!isSignIn ? (
+              <div>
+                <input
+                  ref={name}
+                  type="text"
+                  placeholder="Full Name"
+                  className="w-full px-4 py-3 bg-gray-800 rounded text-white focus:outline-none focus:ring-2 focus:ring-red-600"
+                />
+                {errors.name && <p style={{ color: "red" }}>{errors.name}</p>}{" "}
+              </div>
+            ) : null}
             {}
-            
+
             <input
-            ref={email}
+              ref={email}
               type="email"
               placeholder="Email or phone number"
               className="w-full px-4 py-3 bg-gray-800 rounded text-white focus:outline-none focus:ring-2 focus:ring-red-600"
             />
-            {errors.email && <p style={{ color: 'red' }}>{errors.email}</p>}
+            {errors.email && <p style={{ color: "red" }}>{errors.email}</p>}
 
             <input
-            ref={password}
+              ref={password}
               type="password"
               placeholder="Password"
               className="w-full px-4 py-3 bg-gray-800 rounded text-white focus:outline-none focus:ring-2 focus:ring-red-600"
             />
-            {errors.password && <p style={{ color: 'red' }}>{errors.password}</p>}
+            {errors.password && (
+              <p style={{ color: "red" }}>{errors.password}</p>
+            )}
 
             <button
               type="submit"
-              className="w-full bg-red-600 hover:bg-red-700 py-3 rounded font-semibold" onClick={handleButtonClick}
+              className="w-full bg-red-600 hover:bg-red-700 py-3 rounded font-semibold"
+              onClick={handleButtonClick}
             >
               {isSignIn ? "Sign In" : "Sign Up"}
             </button>
@@ -115,14 +151,6 @@ console.log("Errors", validationErrors);
               </span>
             </div>
           )}
-
-          <p className="mt-4 text-xs text-gray-500">
-            This page is protected by Google reCAPTCHA to ensure you're not a
-            bot.{" "}
-            <a href="#" className="text-blue-500 hover:underline">
-              Learn more.
-            </a>
-          </p>
         </div>
       </div>
     </div>
